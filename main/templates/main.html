@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+{% block content %}
+<link href="{{ url_for('static', filename='main_bar.css') }}" rel="stylesheet">
+<div class = "main">
+  <div class = "title">
+    Calories consumed today
+  </div>
+  <div class="progress-bar" role="progressbar">
+      <div class="progress-bar-value">0%</div>
+      <div class="progress-bar-fill"></div>
+  </div>
+  <br>
+  {% if meals %}
+  <div class="wrapper">
+    <div class='meals'>
+      {% set total_calories = 0 %}
+      {% for meal in meals %}
+      {% set total_calories = total_calories + meal.calories %}
+        <div class="name">
+          {{ meal.name }}
+        </div>
+        <div class="calories">
+          {{ meal.calories }}(kcals)
+        </div>
+        {% if meal.choicen == False %}
+          <input type='checkbox' id = {{ meal.id }} style='display:none' value = {{ meal.calories }}></input>
+        {% else %}
+          <input type='checkbox' value = {{ meal.calories }} id = {{ meal.id }}> Consumed</input>
+        {% endif %}
+        <div class = "button">
+          {% if meal.choicen == False %}
+            <a class="btn btn-secondary btn-sm mt-1 mb-1" id="choose" href="{{url_for('choose_dishes', meal_id = meal.id)}}">Choose Dishes</a>
+          {% else %}
+            <a class="btn btn-secondary btn-sm mt-1 mb-1" id="show" href="{{url_for('show_dish', meal_id = meal.id)}}">Show Dish</a>
+            <a class="btn btn-secondary btn-sm mt-1 mb-1" id="change" href="{{url_for('view_dishes', meal_id = meal.id)}}">Change Dish</a>
+          {% endif %}
+          <a class="btn btn-danger btn-sm m-1" id = {{ meal.id }} href="{{url_for('delete_meal', meal_id = meal.id)}}">Delete Dish</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  </div>
+  <div class="buttons">
+    <form method="POST" action="">
+      {% if not meals %}
+      <div class="input_field">
+        <input type="submit", name="submit_button", value="Daily Distribution", class="form-control", id="daily_distribution">
+      </div>
+      {% endif %}
+      <div class="input_field">
+        <input type="submit", name="submit_button", value="Add Meal", class="form-control", id="all_meal">
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  class ProgressBar {
+  constructor(element, initialValue = 0, initialTotal = 0) {
+    this.valueElem = element.querySelector('.progress-bar-value');
+    this.fillElem = element.querySelector('.progress-bar-fill');
+    this.total = initialTotal;
+    this.setValue(initialValue, initialTotal);
+    this.fillElem.style.width = initialValue + '%';
+  }
+
+  setValue(newValue, totalValue) {
+    if (newValue <= 0) {
+      newValue = 0;
+    }
+    if (newValue > 100) {
+      newValue = 100;
+    }
+    this.total = totalValue;
+    this.value = newValue;
+    this.update();
+    this.updateValue();
+  }
+
+  update() {
+    const percentage = this.value + '%';
+    this.fillElem.style.width = percentage;
+  }
+  updateValue() {
+    const total = this.total + ' kkal';
+    this.valueElem.textContent = total;
+  }
+}
+
+const meals = document.querySelectorAll('input[type="checkbox"]');
+const deleteBtn = document.querySelectorAll('a.btn.btn-danger.btn-sm.m-1');
+const progressBar = new ProgressBar(document.querySelector('.progress-bar'));
+
+function updateProgressBar() {
+  let selectedCalories = 0;
+  let totalCalories = 0;
+  let totalCheckedCalories = 0;
+
+  deleteBtn.forEach((btn) => {
+    btn.onclick = function(){
+    localStorage.removeItem(btn.id);
+    }
+  })
+
+  meals.forEach((meal) => {
+    const calories = parseInt(meal.value);
+    totalCalories += calories;
+
+    if (meal.checked) {
+      selectedCalories += calories;
+      localStorage.setItem(meal.id, 'true');
+    } else {
+      localStorage.setItem(meal.id, 'false');
+    }
+  });
+
+  if (selectedCalories > 0) {
+    totalCheckedCalories = selectedCalories;
+    meals.forEach((meal) => {
+      if (!meal.checked) {
+        totalCheckedCalories += parseInt(meal.value);
+      }
+    });
+  } else {
+    totalCheckedCalories = totalCalories;
+  }
+
+  percentage = 0
+  if (totalCheckedCalories !== 0){
+    percentage = Math.round(selectedCalories / totalCheckedCalories * 100);
+  }
+
+
+  console.log(percentage);
+  progressBar.setValue(percentage, selectedCalories);
+}
+
+meals.forEach((meal) => {
+  meal.checked = localStorage.getItem(meal.id) === 'true';
+  meal.addEventListener('click', updateProgressBar);
+});
+
+updateProgressBar();
+</script>
+
+{% endblock content %}

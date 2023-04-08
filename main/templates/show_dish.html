@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+    <link href="{{ url_for('static', filename='show_dish.css') }}" rel="stylesheet">
+    <div class="wrapper">
+        <div class = "title">
+            Choosen Dish
+        </div>
+        <div class = "input_field">
+        {% for meal in dish_lst %}
+            <fieldset class="form-group">
+                <div class = "info">
+                    {{ meal}}:<br>
+        {% endfor %}
+                    <div class = "elem">
+                        Calories: {{ dish.calories }}<br>
+                        Proteins: {{ dish.proteins }}<br>
+                        Carbs: {{ dish.carbs }}<br>
+                        Fats: {{ dish.fats }}<br>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="input_field_">
+            <a class="form-control" id="back" href="{{ url_for('main') }}">Back</a>
+        </div>
+    </div>
+{% endblock content %}
